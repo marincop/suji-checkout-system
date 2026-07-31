@@ -73,6 +73,10 @@ export default function AdminDashboard() {
   const [editTable, setEditTable] = useState(1);
   const [editLoading, setEditLoading] = useState(false);
 
+  // Tables lock status state
+  const [tables, setTables] = useState([]);
+  const [tablesLoading, setTablesLoading] = useState(false);
+
   // Check initial login token
   useEffect(() => {
     const token = localStorage.getItem('sushi_admin_token');
@@ -84,7 +88,10 @@ export default function AdminDashboard() {
   // Fetch reports or history on changes
   useEffect(() => {
     if (!isLoggedIn) return;
-    if (activeTab === 'daily') fetchDailyReport();
+    if (activeTab === 'daily') {
+      fetchDailyReport();
+      fetchTableStatus();
+    }
     if (activeTab === 'monthly') fetchMonthlyReport();
     if (activeTab === 'history') fetchHistory();
     if (activeTab === 'waiters') fetchWaiters();
@@ -121,6 +128,37 @@ export default function AdminDashboard() {
       if (!localStorage.getItem('sushi_admin_token')) setIsLoggedIn(false);
     } finally {
       setDailyLoading(false);
+    }
+  };
+
+  // 1.5 Fetch Tables Lock status
+  const fetchTableStatus = async () => {
+    setTablesLoading(true);
+    try {
+      const data = await api.getTables();
+      setTables(data);
+    } catch (err) {
+      console.error('Failed to fetch tables lock status:', err);
+    } finally {
+      setTablesLoading(false);
+    }
+  };
+
+  // 1.6 Force Unlock Table
+  const handleForceUnlock = async (tableNumber) => {
+    if (window.confirm(`確定要強制解除 ${tableNumber} 號桌的鎖定狀態嗎？\n\n警告：這將會清除服務生的即時鎖定鎖，請確認該桌已無服務生正在結算！`)) {
+      try {
+        const success = await api.forceUnlockTable(tableNumber);
+        if (success) {
+          alert(`${tableNumber} 號桌已成功強制解鎖！`);
+          fetchTableStatus();
+        } else {
+          alert('解鎖失敗，請稍後再試。');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('解鎖失敗，請檢查網路連線。');
+      }
     }
   };
 
@@ -502,6 +540,65 @@ export default function AdminDashboard() {
                     </table>
                   </div>
                 )}
+              </div>
+
+              {/* Table Lock Management (Force Unlock) */}
+              <div className="glass-card p-6 rounded-2xl border border-white/10 md:col-span-3 space-y-4 shadow-xl">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-white/50 tracking-wider uppercase flex items-center gap-1.5">
+                    <Lock size={16} className="text-yellow-400" /> 即時桌位鎖定與解鎖管理
+                  </h3>
+                  <button
+                    onClick={fetchTableStatus}
+                    disabled={tablesLoading}
+                    className="flex items-center gap-1 bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <RefreshCw className={tablesLoading ? "animate-spin" : ""} size={12} />
+                    更新桌況
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {tables.map(table => (
+                    <div
+                      key={table.table_number}
+                      className={`p-3.5 rounded-2xl border flex flex-col justify-between items-center transition-all ${
+                        table.is_locked
+                          ? 'bg-rose-950/20 border-rose-500/30 text-rose-300'
+                          : 'bg-emerald-950/10 border-emerald-500/20 text-emerald-300'
+                      }`}
+                    >
+                      <div className="text-center">
+                        <span className="block text-lg font-black">{table.table_number} 號桌</span>
+                        {table.is_locked ? (
+                          <span className="text-[10px] bg-rose-500/25 px-1.5 py-0.5 rounded-md text-white font-bold block mt-1">
+                            {table.locked_by} 點算中
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded-md text-emerald-400 font-bold block mt-1">
+                            空閒
+                          </span>
+                        )}
+                      </div>
+                      
+                      {table.is_locked ? (
+                        <button
+                          onClick={() => handleForceUnlock(table.table_number)}
+                          className="mt-3 w-full py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-extrabold shadow-md transition-all active:scale-[0.95]"
+                        >
+                          強制解鎖
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="mt-3 w-full py-1.5 bg-white/5 text-white/20 rounded-xl text-xs font-semibold cursor-not-allowed border border-white/5"
+                        >
+                          無須解鎖
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}

@@ -58,6 +58,22 @@ export const api = {
     }
   },
 
+  // Force Unlock Table (Admin function)
+  async forceUnlockTable(tableNumber) {
+    if (!this.isOnline()) return;
+    try {
+      const res = await fetch(`${API_BASE}/tables/${tableNumber}/lock`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      return res.ok;
+    } catch (err) {
+      console.warn('Force Unlock API error:', err);
+      return false;
+    }
+  },
+
   // Fetch Tables Lock status
   async getTables() {
     if (!this.isOnline()) {
