@@ -430,6 +430,21 @@ app.get('/api/admin/reports/monthly', authenticateToken, async (req, res) => {
   }
 });
 
+// Serve static assets from frontend build in production
+const path = require('path');
+const fs = require('fs');
+
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.url.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
+
 dbReady.then(() => {
   app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);

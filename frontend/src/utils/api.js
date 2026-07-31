@@ -1,6 +1,8 @@
 import { localDb } from '../db';
 
-const API_BASE = 'http://localhost:5001/api';
+const API_BASE = window.location.origin.includes('localhost:5173')
+  ? 'http://localhost:5001/api'
+  : '/api';
 
 // Get token from localStorage
 export function getAdminToken() {
