@@ -134,29 +134,22 @@ export default function PlateCounter({ tableNumber, waiterId, onBack }) {
   };
 
   return (
-    <div className="max-w-md mx-auto p-2 space-y-4 animate-fade-in pb-32">
+    <div className="max-w-md mx-auto p-2 space-y-4 animate-fade-in pb-44">
       {/* Header Bar */}
       <div className="flex justify-between items-center bg-black/20 p-3 rounded-2xl border border-white/5 shadow-md">
         <button
-          onClick={handleCancel}
-          className="flex items-center gap-1 bg-white/10 hover:bg-white/15 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
-        >
-          <ArrowLeft size={14} />
-          返回
-        </button>
-        <div className="text-center">
-          <span className="block text-lg font-bold">桌號 {tableNumber}</span>
-          <span className="text-[9px] text-yellow-300 font-bold uppercase tracking-wider">
-            服務生: {waiterId}
-          </span>
-        </div>
-        <button
           onClick={handleClear}
-          className="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-xl transition-all"
+          className="p-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 rounded-xl transition-all"
           title="清空重置"
         >
           <Trash2 size={16} />
         </button>
+        <div className="text-right">
+          <span className="block text-base font-extrabold text-white">桌號 #{tableNumber}</span>
+          <span className="text-[10px] text-yellow-300 font-bold uppercase tracking-wider">
+            服務生: {waiterId}
+          </span>
+        </div>
       </div>
 
       {/* Plates 3x2 Grid (Fits perfectly on one screen) */}
@@ -223,33 +216,42 @@ export default function PlateCounter({ tableNumber, waiterId, onBack }) {
       </div>
 
       {/* Bottom Sticky Checkout summary */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#1e3e27]/90 backdrop-blur-lg border-t border-white/15 shadow-2xl flex flex-col gap-3 max-w-md mx-auto z-40 rounded-t-3xl">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#1e3e27]/95 backdrop-blur-lg border-t border-white/15 shadow-2xl flex flex-col gap-2.5 max-w-md mx-auto z-40 rounded-t-3xl">
         <div className="flex justify-between items-center px-2">
           <div>
             <span className="text-[10px] text-white/60 block">總盤數</span>
-            <span className="text-xl font-extrabold text-yellow-300">{totalPlates} 盤</span>
+            <span className="text-lg font-extrabold text-yellow-300">{totalPlates} 盤</span>
           </div>
           <div className="text-right">
             <span className="text-[10px] text-white/60 block">即時總金額</span>
-            <span className="text-xl font-extrabold text-emerald-300">${totalAmount} TWD</span>
+            <span className="text-lg font-extrabold text-emerald-300">${totalAmount} TWD</span>
           </div>
         </div>
 
         <button
           onClick={handleCheckout}
           disabled={loading || totalPlates === 0}
-          className={`w-full py-3.5 rounded-2xl font-extrabold text-base flex items-center justify-center gap-2 shadow-lg transition-all ${
+          className={`w-full py-3 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg transition-all ${
             totalPlates === 0
               ? 'bg-white/10 text-white/40 cursor-not-allowed border border-white/5'
               : 'bg-emerald-500 hover:bg-emerald-400 text-white active:scale-[0.98]'
           }`}
         >
           {loading ? (
-            <RefreshCw className="animate-spin" size={18} />
+            <RefreshCw className="animate-spin" size={16} />
           ) : (
-            <Check size={18} />
+            <Check size={16} />
           )}
           確認結算
+        </button>
+
+        <button
+          onClick={handleCancel}
+          disabled={loading}
+          className="w-full py-2.5 bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl font-bold text-xs text-white/80 transition-all flex items-center justify-center gap-1 active:scale-[0.98]"
+        >
+          <ArrowLeft size={12} />
+          返回桌號選單 (解鎖)
         </button>
       </div>
     </div>
