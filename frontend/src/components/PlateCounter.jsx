@@ -3,6 +3,17 @@ import { localDb } from '../db';
 import { api } from '../utils/api';
 import { ArrowLeft, Trash2, Check, RefreshCw } from 'lucide-react';
 
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 const PLATE_CONFIGS = [
   { key: 'green', name: '綠盤 Green', price: 50, color: '#4CAF50', textLight: true },
   { key: 'orange', name: '橘盤 Orange', price: 70, color: '#FF9800', textLight: true },
@@ -79,21 +90,20 @@ export default function PlateCounter({ tableNumber, waiterId, onBack }) {
 
     setLoading(true);
 
-    const transactionId = crypto.randomUUID();
-    const newTx = {
-      id: transactionId,
-      table_number: tableNumber,
-      waiter_id: waiterId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-      status: 'pending_sync',
-      plates,
-      total_plates: totalPlates,
-      total_amount: totalAmount
-    };
-
     try {
+      const transactionId = generateUUID();
+      const newTx = {
+        id: transactionId,
+        table_number: tableNumber,
+        waiter_id: waiterId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+        status: 'pending_sync',
+        plates,
+        total_plates: totalPlates,
+        total_amount: totalAmount
+      };
       // 1. Save to local IndexedDB (Offline-First)
       await localDb.saveTransaction(newTx);
 
