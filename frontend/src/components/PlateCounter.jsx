@@ -37,9 +37,26 @@ export default function PlateCounter({ tableNumber, waiterId, onBack }) {
 
   useEffect(() => {
     if (!api.isOnline()) return;
-    const renewLock = () => api.lockTable(tableNumber, waiterId);
+
+    const renewLock = () => {
+      if (document.visibilityState === 'visible') {
+        api.lockTable(tableNumber, waiterId);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        api.lockTable(tableNumber, waiterId);
+      }
+    };
+
     const interval = setInterval(renewLock, 30 * 1000);
-    return () => clearInterval(interval);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [tableNumber, waiterId]);
 
   const handleIncrement = (key) => {
